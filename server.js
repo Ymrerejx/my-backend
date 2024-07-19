@@ -29,12 +29,14 @@ db.connect((err) => {
 
 // Exemple de route pour récupérer des utilisateurs
 app.get('/days', (req, res) => {
+  
   db.query('SELECT * FROM Day', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la récupération des utilisateurs');
     } else {
       res.status(200).json(result);
+      console.log("Succes : days")
     }
   });
 });
@@ -48,6 +50,7 @@ app.post('/addDay', (req, res) => {
       res.status(500).send('Erreur lors de l\'ajout d un day');
     } else {
       res.status(200).send('day ajouté avec succès');
+      console.log("Succes : addDay")
     }
   });
 });
@@ -61,6 +64,7 @@ app.post('/getToday', (req, res) => {
       res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
     } else {
       res.status(200).json(result);
+      console.log("Succes : getToday")
     }
   });
 });
@@ -74,6 +78,7 @@ app.post('/updateToday', (req, res) => {
       res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
     } else {
       res.status(200).json(result);
+      console.log("Succes : updateToday")
     }
   });
 });
