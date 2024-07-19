@@ -11,21 +11,35 @@ const port = 3000; // Port sur lequel le serveur écoutera
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Configuration de la connexion à la base de données MySQL
-const db = mysql.createConnection({
+let db;
+function handleDisconnect() {
+  db = mysql.createConnection({
     host: 'mysql-courtade.alwaysdata.net', // Remplacez par l'hôte de votre base de données
     user: 'courtade', // Remplacez par le nom d'utilisateur de votre base de données
     password: 'Courtade14##', // Remplacez par le mot de passe de votre base de données
     database: 'courtade_mydaily' // Remplacez par le nom de votre base de données
   });
 
-// Connexion à MySQL
-db.connect((err) => {
-  if (err) {
-    throw err;
-  }
-  console.log('Connecté à la base de données MySQL');
-});
+  db.connect((err) => {
+    if (err) {
+      console.error('Erreur de connexion à la base de données:', err);
+      setTimeout(handleDisconnect, 2000); // Reconnexion après 2 secondes
+    } else {
+      console.log('Connecté à la base de données MySQL');
+    }
+  });
+
+  db.on('error', (err) => {
+    console.error('Erreur de la base de données:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
+      handleDisconnect();
+    } else {
+      throw err;
+    }
+  });
+}
+
+handleDisconnect();
 
 // Exemple de route pour récupérer des utilisateurs
 app.get('/days', (req, res) => {
