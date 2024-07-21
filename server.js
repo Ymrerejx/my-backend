@@ -116,7 +116,7 @@ app.post('/removeSport', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/getToday', (req, res) => {
   const { currentDate } = req.body;
-  db.query('SELECT * FROM Day INNER JOIN Sport ON Day.Date = Sport.Date WHERE Date = "' + currentDate+  '";', (err, result) => {
+  db.query('SELECT Sport.Id, Day.Description, Sport.Sport, Day.Date FROM Day INNER JOIN Sport ON Day.Date = Sport.Date WHERE Day.Date = "' + currentDate+  '";', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
