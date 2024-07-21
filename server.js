@@ -70,6 +70,50 @@ app.post('/addDay', (req, res) => {
 });
 
 // Exemple de route pour ajouter un utilisateur
+app.post('/addSport', (req, res) => {
+  const { currentSportSelection, currentDate } = req.body;
+  db.query('INSERT INTO Sport (Sport, Date) VALUES (?, ?)', [ currentSportSelection, currentDate], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erreur lors de l\'ajout d un day');
+    } else {
+      res.status(200).send('sport ajouté avec succès');
+      console.log("Succes : addSport")
+    }
+  });
+});
+
+// Exemple de route pour ajouter un utilisateur
+app.post('/getSport', (req, res) => {
+  const { currentDate } = req.body;
+  db.query('SELECT * FROM `Sport` WHERE Date = "' + currentDate+  '";', (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erreur lors de la récupération des sports du jour');
+    } else {
+      res.status(200).send(result);
+      console.log("Succes : getSport")
+    }
+  });
+});
+
+// Exemple de route pour ajouter un utilisateur
+app.post('/removeSport', (req, res) => {
+  const { sportId } = req.body;
+  console.log("ok remove");
+
+  db.query('DELETE FROM Sport WHERE Id = "' + sportId+  '";', (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erreur lors de la suppression d\'un sports du jour');
+    } else {
+      res.status(200).send(result);
+      console.log("Succes : removeSport")
+    }
+  });
+});
+
+// Exemple de route pour ajouter un utilisateur
 app.post('/getToday', (req, res) => {
   const { currentDate } = req.body;
   db.query('SELECT * FROM `Day` WHERE Date = "' + currentDate+  '";', (err, result) => {
