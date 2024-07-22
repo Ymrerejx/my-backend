@@ -57,8 +57,8 @@ app.get('/days', (req, res) => {
 
 // Exemple de route pour ajouter un utilisateur
 app.post('/addDay', (req, res) => {
-  const { Description, Sport, currentDate } = req.body;
-  db.query('INSERT INTO Day (Description, Activity, Date) VALUES ( ?, ?, ?)', [ Description, Sport, currentDate], (err, result) => {
+  const { Description, currentDate } = req.body;
+  db.query('INSERT INTO Day (Description, Date) VALUES ( ?, ?)', [ Description, currentDate], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de l\'ajout d un day');
@@ -72,7 +72,7 @@ app.post('/addDay', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/addSport', (req, res) => {
   const { currentSportSelection, currentDate } = req.body;
-  db.query('INSERT INTO Sport (Sport, Date) VALUES (?, ?)', [ currentSportSelection, currentDate], (err, result) => {
+  db.query('INSERT INTO Sport (Activity, Date) VALUES (?, ?)', [ currentSportSelection, currentDate], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de l\'ajout d un day');
@@ -116,7 +116,7 @@ app.post('/removeSport', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/getToday', (req, res) => {
   const { currentDate } = req.body;
-  db.query('SELECT Sport.Id, Day.Description, Day.Sport, Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date WHERE Day.Date = "' + currentDate+  '";', (err, result) => {
+  db.query('SELECT Sport.Id, Day.Description, Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date WHERE Day.Date = "' + currentDate+  '";', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
@@ -129,11 +129,11 @@ app.post('/getToday', (req, res) => {
 
 // Exemple de route pour ajouter un utilisateur
 app.post('/updateToday', (req, res) => {
-  const { Description, Sport, currentDate } = req.body;
-  db.query('UPDATE Day SET Description = "'+ Description+'", Activity = "'+Sport+'" WHERE Date = "'+currentDate+'";', (err, result) => {
+  const { Description, currentDate } = req.body;
+  db.query('UPDATE Day SET Description = "'+ Description+'" WHERE Date = "'+currentDate+'";', (err, result) => {
     if (err) {
       console.log(err);
-      res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
+      res.status(500).send('Erreur lors de l\'update Today' + currentDate);
     } else {
       res.status(200).json(result);
       console.log("Succes : updateToday")
