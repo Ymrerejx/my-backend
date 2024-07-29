@@ -128,6 +128,83 @@ app.post('/getToday', (req, res) => {
 });
 
 // Exemple de route pour ajouter un utilisateur
+app.post('/getAlert', (req, res) => {
+  const { currentDate } = req.body;
+  db.query('SELECT * FROM Day ORDER BY Date DESC;', (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
+    } else {
+
+      // Alert piano
+      let dayWithoutPiano = -1;
+      let needPianoCount = true;
+
+      // Alert skin
+      let dayWithoutSkin = -1;
+      let needSkinCount = true;
+
+      // Alert reading
+      let dayWithoutReading = -1;
+      let needReadingCount = true;
+
+      //Alert Fap
+      let dayWithoutFap = -1;
+      let lastFap = "";
+      let needFapCount = true;
+      result.forEach(element => {
+        //Piano
+        if(needPianoCount)
+        {
+          dayWithoutPiano++;
+        }
+        if(element.Piano != false && needPianoCount)
+        {
+          needPianoCount = false;
+        }
+
+        //Skin
+        if(needSkinCount)
+        {
+          dayWithoutSkin++;
+        }
+        if(element.Skin != false && needSkinCount)
+        {
+          needSkinCount = false;
+        }
+
+        //Reading
+        if(needReadingCount)
+        {
+          dayWithoutReading++;
+        }
+        if(element.Reading != false && needReadingCount)
+        {
+          needReadingCount = false;
+        }
+
+        // Fap
+        if(needFapCount)
+        {
+          dayWithoutFap++;
+        }
+        
+        if(element.Fap != "Pure" && needFapCount)
+        {
+          lastFap = element.Fap;
+          needFapCount = false;
+        }
+
+      });
+
+      const resultsAlert = [{dayWithoutPiano, dayWithoutSkin, dayWithoutReading, dayWithoutFap, lastFap}];
+      res.status(200).json(resultsAlert);
+      console.log("Succes : getAlert")
+    }
+  });
+});
+
+// Exemple de route pour ajouter un utilisateur
 app.post('/updateToday', (req, res) => {
   const {rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate } = req.body;
   db.query('UPDATE Day SET Skin = '+skinChecked+', Piano = '+pianoChecked+', Sleep = "'+sleepValue+'", Reading = '+readingChecked+', Rating = "'+rating+'", Description = "'+ Description+'", Fap = "'+Fap+'" WHERE Date = "'+currentDate+'";', (err, result) => {
