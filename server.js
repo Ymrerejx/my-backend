@@ -130,76 +130,112 @@ app.post('/getToday', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/getAlert', (req, res) => {
   const { currentDate } = req.body;
+  // Sport / Routine reading
+  let dayWithoutSport = -1;
+  let needSportCount = true;
+
+  // Alert piano
+  let dayWithoutPiano = -1;
+  let needPianoCount = true;
+
+  // Alert skin
+  let dayWithoutSkin = -1;
+  let needSkinCount = true;
+
+  // Alert reading
+  let dayWithoutReading = -1;
+  let needReadingCount = true;
+
+  //Alert Fap
+  let dayWithoutFap = -1;
+  let lastFap = "";
+  let needFapCount = true;
+
   db.query('SELECT * FROM Day ORDER BY Date DESC;', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
     } else {
 
-      // Alert piano
-      let dayWithoutPiano = -1;
-      let needPianoCount = true;
+      
+    result.forEach(element => {
+      //Piano
+      if(needPianoCount)
+      {
+        dayWithoutPiano++;
+      }
+      if(element.Piano != false && needPianoCount)
+      {
+        needPianoCount = false;
+      }
 
-      // Alert skin
-      let dayWithoutSkin = -1;
-      let needSkinCount = true;
+      //Skin
+      if(needSkinCount)
+      {
+        dayWithoutSkin++;
+      }
+      if(element.Skin != false && needSkinCount)
+      {
+        needSkinCount = false;
+      }
 
-      // Alert reading
-      let dayWithoutReading = -1;
-      let needReadingCount = true;
+      //Reading
+      if(needReadingCount)
+      {
+        dayWithoutReading++;
+      }
+      if(element.Reading != false && needReadingCount)
+      {
+        needReadingCount = false;
+      }
 
-      //Alert Fap
-      let dayWithoutFap = -1;
-      let lastFap = "";
-      let needFapCount = true;
-      result.forEach(element => {
-        //Piano
-        if(needPianoCount)
-        {
-          dayWithoutPiano++;
-        }
-        if(element.Piano != false && needPianoCount)
-        {
-          needPianoCount = false;
-        }
+      // Fap
+      if(needFapCount)
+      {
+        dayWithoutFap++;
+      }
+      
+      if(element.Fap != "Pure" && needFapCount)
+      {
+        lastFap = element.Fap;
+        needFapCount = false;
+      }
 
-        //Skin
-        if(needSkinCount)
-        {
-          dayWithoutSkin++;
-        }
-        if(element.Skin != false && needSkinCount)
-        {
-          needSkinCount = false;
-        }
+    });
 
-        //Reading
-        if(needReadingCount)
-        {
-          dayWithoutReading++;
-        }
-        if(element.Reading != false && needReadingCount)
-        {
-          needReadingCount = false;
-        }
+    db.query('SELECT Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER by Day.Date DESC;', (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
+      } else {
+        let date = "";
+        let dateOk = false;
+        result.forEach(element => {
 
-        // Fap
-        if(needFapCount)
-        {
-          dayWithoutFap++;
-        }
-        
-        if(element.Fap != "Pure" && needFapCount)
-        {
-          lastFap = element.Fap;
-          needFapCount = false;
-        }
+          if(date != element.Date)
+          {
+            date = element.Date;
+            dateOk = false;
+          }
+          
+          // Sport
+          if(needSportCount && !dateOk)
+          {
+            dayWithoutSport++;
+          }
+          if(element.Activity != null && needSportCount)
+          {
+            needSportCount = false;
+          }
+        });
 
-      });
+        const resultsAlert = [{dayWithoutSport,dayWithoutPiano, dayWithoutSkin, dayWithoutReading, dayWithoutFap, lastFap}];
+        res.status(200).json(resultsAlert);
+        console.log("Succes : getAlert");
+      }
+    });
 
-      const resultsAlert = [{dayWithoutPiano, dayWithoutSkin, dayWithoutReading, dayWithoutFap, lastFap}];
-      res.status(200).json(resultsAlert);
-      console.log("Succes : getAlert")
+    
     }
   });
 });
