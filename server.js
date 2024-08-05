@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const pool = mariadb.createPool({
-  host: 'localhost',  // Remplacez par l'adresse de votre serveur MariaDB
+  host: '127.0.0.1',  // Remplacez par l'adresse de votre serveur MariaDB
   user: 'ymerejx',  // Remplacez par votre nom d'utilisateur
   password: '149999',  // Remplacez par votre mot de passe
   database: 'MyDaily',
