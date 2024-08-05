@@ -19,7 +19,6 @@ async function handleDisconnect() {
     host: 'localhost',  // Remplacez par l'adresse de votre serveur MariaDB
     user: 'ymerejx',  // Remplacez par votre nom d'utilisateur
     password: '149999',  // Remplacez par votre mot de passe
-    database: 'MyDaily',  // Remplacez par le nom de votre base de données
     connectionLimit: 5
   });
 
