@@ -118,18 +118,10 @@ app.post('/removeSport', async (req, res) => {
     conn = await pool.getConnection(); // Obtenez une connexion du pool
 
     // Utilisez une requête paramétrée pour éviter les injections SQL
-    const result = await conn.query('DELETE FROM Sport WHERE Id = ?', [sportId]);
-    // Convertir les résultats en JSON en traitant les BigInt
-    const jsonResult = result.map(row => {
-      // Convertir BigInt en Number si nécessaire
-      return Object.fromEntries(
-        Object.entries(row).map(([key, value]) =>
-          [key, typeof value === 'bigint' ? Number(value) : value]
-        )
-      );
-    });
+    await conn.query('DELETE FROM Sport WHERE Id = ?', [sportId]);
 
-    res.status(200).send(jsonResult);
+
+    res.status(200).send("remove sport success");
     console.log("Succès : removeSport");
 
   } catch (err) {
@@ -301,19 +293,10 @@ app.post('/updateToday', async (req, res) => {
     `;
     const values = [skinChecked, pianoChecked, sleepValue, readingChecked, rating, Description, Fap, currentDate];
     
-    const result = await conn.query(query, values);
+    await conn.query(query, values);
 
-    // Convertir les résultats en JSON en traitant les BigInt
-    const jsonResult = result.map(row => {
-      // Convertir BigInt en Number si nécessaire
-      return Object.fromEntries(
-        Object.entries(row).map(([key, value]) =>
-          [key, typeof value === 'bigint' ? Number(value) : value]
-        )
-      );
-    });
 
-    res.status(200).json(jsonResult);
+    res.status(200).json('Update success');
     console.log("Succès : updateToday");
 
   } catch (err) {
