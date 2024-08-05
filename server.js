@@ -282,18 +282,18 @@ app.post('/updateToday', async (req, res) => {
     const query = `
       UPDATE Day
       SET
-        Skin = ?,
-        Piano = ?,
-        Sleep = ?,
-        Reading = ?,
-        Rating = ?,
-        Description = ?,
-        Fap = ?
-      WHERE Date = ?
+        Skin = `+skinChecked+`,
+        Piano = `+pianoChecked+`,
+        Sleep = "`+sleepValue+`",
+        Reading = `+readingChecked+`,
+        Rating = `+rating+`,
+        Description = "`+Description+`",
+        Fap = "`+Fap+`"
+      WHERE Date = "`+currentDate+`";
     `;
     const values = [skinChecked, pianoChecked, sleepValue, readingChecked, rating, Description, Fap, currentDate];
-    
-    const result = await conn.query(query, values);
+    console.log(query);
+    const result = await conn.query(query);
 
     res.status(200).json(result);
     console.log("Succès : updateToday");
