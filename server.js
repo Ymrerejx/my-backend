@@ -1,7 +1,8 @@
 // index.js
 
 const express = require('express');
-const mysql = require('mysql2');
+const mariadb = require('mariadb');
+
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -11,54 +12,50 @@ const port = 3000; // Port sur lequel le serveur écoutera
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-let db;
-function handleDisconnect() {
-  db = mysql.createConnection({
-    host: 'mysql-courtade.alwaysdata.net', // Remplacez par l'hôte de votre base de données
-    user: 'courtade', // Remplacez par le nom d'utilisateur de votre base de données
-    password: 'Courtade14##', // Remplacez par le mot de passe de votre base de données
-    database: 'courtade_mydaily' // Remplacez par le nom de votre base de données
+let pool;
+let conn;
+async function handleDisconnect() {
+  pool = mariadb.createPool({
+    host: 'localhost',  // Remplacez par l'adresse de votre serveur MariaDB
+    user: 'ymerejx',  // Remplacez par votre nom d'utilisateur
+    password: '149999',  // Remplacez par votre mot de passe
+    database: 'MyDaily',  // Remplacez par le nom de votre base de données
+    connectionLimit: 5
   });
 
-  db.connect((err) => {
-    if (err) {
-      console.error('Erreur de connexion à la base de données:', err);
-      setTimeout(handleDisconnect, 2000); // Reconnexion après 2 secondes
-    } else {
-      console.log('Connecté à la base de données MySQL');
-    }
-  });
-
-  db.on('error', (err) => {
-    console.error('Erreur de la base de données:', err);
-    if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
-      handleDisconnect();
-    } else {
-      throw err;
-    }
-  });
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    console.log("Connecté à la base de données MariaDB !");
+    // Faites des requêtes ici
+  } catch (err) {
+    console.error("Erreur lors de la connexion à MariaDB:", err);
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 }
 
 handleDisconnect();
 
 // Exemple de route pour récupérer des utilisateurs
-app.get('/days', (req, res) => {
+app.get('/days', async (req, res) => {
   
-  db.query('SELECT * FROM Day', (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de la récupération des utilisateurs');
-    } else {
-      res.status(200).json(result);
-      console.log("Succes : days")
-    }
-  });
+  try {
+    const rows = await conn.query("SELECT * FROM Day"); // Remplacez par votre requête SQL
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur lors de la récupération de la table DAY');
+  } finally {
+    if (conn) conn.release();
+  }
 });
 
+/*
 // Exemple de route pour ajouter un utilisateur
 app.post('/addDay', (req, res) => {
   const { rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate } = req.body;
-  db.query('INSERT INTO Day (Rating, Reading, Piano, Skin, Sleep, Description, Fap, Date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate], (err, result) => {
+  conn.query('INSERT INTO Day (Rating, Reading, Piano, Skin, Sleep, Description, Fap, Date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de l\'ajout d un day');
@@ -72,7 +69,7 @@ app.post('/addDay', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/addSport', (req, res) => {
   const { currentSportSelection, currentDate } = req.body;
-  db.query('INSERT INTO Sport (Activity, Date) VALUES (?, ?)', [ currentSportSelection, currentDate], (err, result) => {
+  conn.query('INSERT INTO Sport (Activity, Date) VALUES (?, ?)', [ currentSportSelection, currentDate], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de l\'ajout d un day');
@@ -86,7 +83,7 @@ app.post('/addSport', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/getSport', (req, res) => {
   const { currentDate } = req.body;
-  db.query('SELECT * FROM `Sport` WHERE Date = "' + currentDate+  '";', (err, result) => {
+  conn.query('SELECT * FROM `Sport` WHERE Date = "' + currentDate+  '";', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la récupération des sports du jour');
@@ -102,7 +99,7 @@ app.post('/removeSport', (req, res) => {
   const { sportId } = req.body;
   console.log("ok remove");
 
-  db.query('DELETE FROM Sport WHERE Id = "' + sportId+  '";', (err, result) => {
+  conn.query('DELETE FROM Sport WHERE Id = "' + sportId+  '";', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la suppression d\'un sports du jour');
@@ -116,7 +113,7 @@ app.post('/removeSport', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/getToday', (req, res) => {
   const { currentDate } = req.body;
-  db.query('SELECT Sport.Id, Day.Rating, Day.Piano, Day.Skin, Day.Sleep, Day.Reading, Day.Description, Day.Fap, Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date WHERE Day.Date = "' + currentDate+  '";', (err, result) => {
+  conn.query('SELECT Sport.Id, Day.Rating, Day.Piano, Day.Skin, Day.Sleep, Day.Reading, Day.Description, Day.Fap, Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date WHERE Day.Date = "' + currentDate+  '";', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
@@ -151,7 +148,7 @@ app.post('/getAlert', (req, res) => {
   let lastFap = "";
   let needFapCount = true;
 
-  db.query('SELECT * FROM Day ORDER BY Date DESC;', (err, result) => {
+  conn.query('SELECT * FROM Day ORDER BY Date DESC;', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
@@ -203,7 +200,7 @@ app.post('/getAlert', (req, res) => {
 
     });
 
-    db.query('SELECT Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER by Day.Date DESC;', (err, result) => {
+    conn.query('SELECT Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER by Day.Date DESC;', (err, result) => {
       if (err) {
         console.log(err);
         res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
@@ -243,7 +240,7 @@ app.post('/getAlert', (req, res) => {
 // Exemple de route pour ajouter un utilisateur
 app.post('/updateToday', (req, res) => {
   const {rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate } = req.body;
-  db.query('UPDATE Day SET Skin = '+skinChecked+', Piano = '+pianoChecked+', Sleep = "'+sleepValue+'", Reading = '+readingChecked+', Rating = "'+rating+'", Description = "'+ Description+'", Fap = "'+Fap+'" WHERE Date = "'+currentDate+'";', (err, result) => {
+  conn.query('UPDATE Day SET Skin = '+skinChecked+', Piano = '+pianoChecked+', Sleep = "'+sleepValue+'", Reading = '+readingChecked+', Rating = "'+rating+'", Description = "'+ Description+'", Fap = "'+Fap+'" WHERE Date = "'+currentDate+'";', (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erreur lors de l\'update Today' + currentDate);
@@ -257,4 +254,4 @@ app.post('/updateToday', (req, res) => {
 // Démarrage du serveur
 app.listen(port, () => {
   console.log(`Serveur backend écoutant sur le port ${port}`);
-});
+});*/
