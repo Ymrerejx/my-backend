@@ -12,44 +12,33 @@ const port = 3000; // Port sur lequel le serveur écoutera
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-let pool;
-let conn;
-async function handleDisconnect() {
-  pool = mariadb.createPool({
-    host: 'localhost',  // Remplacez par l'adresse de votre serveur MariaDB
-    user: 'ymerejx',  // Remplacez par votre nom d'utilisateur
-    password: '149999',  // Remplacez par votre mot de passe
-    database: 'MyDaily',
-    connectionLimit: 5
-  });
+const pool = mariadb.createPool({
+  host: 'localhost',  // Remplacez par l'adresse de votre serveur MariaDB
+  user: 'ymerejx',  // Remplacez par votre nom d'utilisateur
+  password: '149999',  // Remplacez par votre mot de passe
+  database: 'MyDaily',
+  connectionLimit: 5
+});
 
+// Exemple de route pour récupérer des jours
+app.get('/days', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    console.log("Connecté à la base de données MariaDB !");
-    // Faites des requêtes ici
-  } catch (err) {
-    console.error("Erreur lors de la connexion à MariaDB:", err);
-  } finally {
-    if (conn) conn.release(); // Toujours libérer la connexion après usage
-  }
-}
-
-handleDisconnect();
-
-// Exemple de route pour récupérer des utilisateurs
-app.get('/days', async (req, res) => {
-  
-  try {
     const rows = await conn.query("SELECT * FROM Day"); // Remplacez par votre requête SQL
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error("Erreur lors de la récupération des jours :", err);
     res.status(500).send('Erreur lors de la récupération de la table DAY');
   } finally {
-    if (conn) conn.release();
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
   }
 });
+
+app.listen(port, () => {
+  console.log(`Serveur en écoute sur le port ${port}`);
+});
+
 
 /*
 // Exemple de route pour ajouter un utilisateur
