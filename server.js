@@ -29,7 +29,7 @@ app.get('/days', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error("Erreur lors de la récupération des jours :", err);
-    res.status(500).send('Erreur lors de la récupération de la table DAY');
+    res.status(500).send(`Erreur lors de la récupération de la table DAY: ${err.message}`);
   } finally {
     if (conn) conn.release(); // Toujours libérer la connexion après usage
   }
