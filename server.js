@@ -16,8 +16,8 @@ let pool;
 let conn;
 async function handleDisconnect() {
   pool = mariadb.createPool({
-    host: 'localhost',  // Remplacez par l'adresse de votre serveur MariaDB
-    user: 'ymerejx',  // Remplacez par votre nom d'utilisateur
+    host: '192.168.1.32',  // Remplacez par l'adresse de votre serveur MariaDB
+    user: 'root',  // Remplacez par votre nom d'utilisateur
     password: '149999',  // Remplacez par votre mot de passe
     connectionLimit: 5
   });
