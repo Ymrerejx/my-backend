@@ -35,212 +35,279 @@ app.get('/days', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Serveur en écoute sur le port ${port}`);
-});
 
 
-/*
-// Exemple de route pour ajouter un utilisateur
-app.post('/addDay', (req, res) => {
+
+// Route pour ajouter un utilisateur
+app.post('/addDay', async (req, res) => {
   const { rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate } = req.body;
-  conn.query('INSERT INTO Day (Rating, Reading, Piano, Skin, Sleep, Description, Fap, Date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate], (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de l\'ajout d un day');
-    } else {
-      res.status(200).send('day ajouté avec succès');
-      console.log("Succes : addDay")
-    }
-  });
+
+  let conn;
+  try {
+    conn = await pool.getConnection(); // Obtenez une connexion du pool
+
+    // Utilisez la méthode query pour insérer les données
+    await conn.query('INSERT INTO Day (Rating, Reading, Piano, Skin, Sleep, Description, Fap, Date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+      [rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate]);
+
+    res.status(200).send('Day ajouté avec succès');
+    console.log("Succès : addDay");
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Erreur lors de l\'ajout d\'un day');
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 });
 
-// Exemple de route pour ajouter un utilisateur
-app.post('/addSport', (req, res) => {
+
+// Route pour ajouter un sport
+app.post('/addSport', async (req, res) => {
   const { currentSportSelection, currentDate } = req.body;
-  conn.query('INSERT INTO Sport (Activity, Date) VALUES (?, ?)', [ currentSportSelection, currentDate], (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de l\'ajout d un day');
-    } else {
-      res.status(200).send('sport ajouté avec succès');
-      console.log("Succes : addSport")
-    }
-  });
+
+  let conn;
+  try {
+    conn = await pool.getConnection(); // Obtenez une connexion du pool
+
+    // Utilisez la méthode query pour insérer les données
+    await conn.query('INSERT INTO Sport (Activity, Date) VALUES (?, ?)', 
+      [currentSportSelection, currentDate]);
+
+    res.status(200).send('Sport ajouté avec succès');
+    console.log("Succès : addSport");
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Erreur lors de l\'ajout d\'un sport');
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 });
 
-// Exemple de route pour ajouter un utilisateur
-app.post('/getSport', (req, res) => {
+
+// Route pour récupérer les sports par date
+app.post('/getSport', async (req, res) => {
   const { currentDate } = req.body;
-  conn.query('SELECT * FROM `Sport` WHERE Date = "' + currentDate+  '";', (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de la récupération des sports du jour');
-    } else {
-      res.status(200).send(result);
-      console.log("Succes : getSport")
-    }
-  });
+
+  let conn;
+  try {
+    conn = await pool.getConnection(); // Obtenez une connexion du pool
+
+    // Utilisez une requête paramétrée pour éviter les injections SQL
+    const result = await conn.query('SELECT * FROM Sport WHERE Date = ?', [currentDate]);
+
+    res.status(200).json(result);
+    console.log("Succès : getSport");
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Erreur lors de la récupération des sports du jour');
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 });
 
-// Exemple de route pour ajouter un utilisateur
-app.post('/removeSport', (req, res) => {
+
+// Route pour supprimer un sport par son ID
+app.post('/removeSport', async (req, res) => {
   const { sportId } = req.body;
-  console.log("ok remove");
 
-  conn.query('DELETE FROM Sport WHERE Id = "' + sportId+  '";', (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de la suppression d\'un sports du jour');
-    } else {
-      res.status(200).send(result);
-      console.log("Succes : removeSport")
-    }
-  });
+  let conn;
+  try {
+    conn = await pool.getConnection(); // Obtenez une connexion du pool
+
+    // Utilisez une requête paramétrée pour éviter les injections SQL
+    const result = await conn.query('DELETE FROM Sport WHERE Id = ?', [sportId]);
+
+    res.status(200).send(result);
+    console.log("Succès : removeSport");
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Erreur lors de la suppression d\'un sport du jour');
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 });
 
-// Exemple de route pour ajouter un utilisateur
-app.post('/getToday', (req, res) => {
+
+// Route pour obtenir les données du jour
+app.post('/getToday', async (req, res) => {
   const { currentDate } = req.body;
-  conn.query('SELECT Sport.Id, Day.Rating, Day.Piano, Day.Skin, Day.Sleep, Day.Reading, Day.Description, Day.Fap, Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date WHERE Day.Date = "' + currentDate+  '";', (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
-    } else {
-      res.status(200).json(result);
-      console.log("Succes : getToday")
-    }
-  });
+
+  let conn;
+  try {
+    conn = await pool.getConnection(); // Obtenez une connexion du pool
+
+    // Utilisez une requête paramétrée pour éviter les injections SQL
+    const result = await conn.query(`
+      SELECT 
+        Sport.Id, 
+        Day.Rating, 
+        Day.Piano, 
+        Day.Skin, 
+        Day.Sleep, 
+        Day.Reading, 
+        Day.Description, 
+        Day.Fap, 
+        Sport.Activity, 
+        Day.Date 
+      FROM Day 
+      LEFT JOIN Sport 
+      ON Day.Date = Sport.Date 
+      WHERE Day.Date = ?`, 
+      [currentDate]
+    );
+
+    res.status(200).json(result);
+    console.log("Succès : getToday");
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
+
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 });
 
-// Exemple de route pour ajouter un utilisateur
-app.post('/getAlert', (req, res) => {
+
+// Exemple de route pour obtenir les alertes
+app.post('/getAlert', async (req, res) => {
   const { currentDate } = req.body;
-  // Sport / Routine reading
+
+  // Variables d'alerte
   let dayWithoutSport = -1;
   let needSportCount = true;
 
-  // Alert piano
   let dayWithoutPiano = -1;
   let needPianoCount = true;
 
-  // Alert skin
   let dayWithoutSkin = -1;
   let needSkinCount = true;
 
-  // Alert reading
   let dayWithoutReading = -1;
   let needReadingCount = true;
 
-  //Alert Fap
   let dayWithoutFap = -1;
   let lastFap = "";
   let needFapCount = true;
 
-  conn.query('SELECT * FROM Day ORDER BY Date DESC;', (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
-    } else {
+  let conn;
+  try {
+    conn = await pool.getConnection(); // Obtenez une connexion du pool
 
-      
-    result.forEach(element => {
-      //Piano
-      if(needPianoCount)
-      {
+    // Récupération des données de la table Day
+    const daysResult = await conn.query('SELECT * FROM Day ORDER BY Date DESC;');
+
+    daysResult.forEach(element => {
+      // Piano
+      if (needPianoCount) {
         dayWithoutPiano++;
       }
-      if(element.Piano != false && needPianoCount)
-      {
+      if (element.Piano && needPianoCount) {
         needPianoCount = false;
       }
 
-      //Skin
-      if(needSkinCount)
-      {
+      // Skin
+      if (needSkinCount) {
         dayWithoutSkin++;
       }
-      if(element.Skin != false && needSkinCount)
-      {
+      if (element.Skin && needSkinCount) {
         needSkinCount = false;
       }
 
-      //Reading
-      if(needReadingCount)
-      {
+      // Reading
+      if (needReadingCount) {
         dayWithoutReading++;
       }
-      if(element.Reading != false && needReadingCount)
-      {
+      if (element.Reading && needReadingCount) {
         needReadingCount = false;
       }
 
       // Fap
-      if(needFapCount)
-      {
+      if (needFapCount) {
         dayWithoutFap++;
       }
-      
-      if(element.Fap != "Pure" && needFapCount)
-      {
+      if (element.Fap !== "Pure" && needFapCount) {
         lastFap = element.Fap;
         needFapCount = false;
       }
-
     });
 
-    conn.query('SELECT Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER by Day.Date DESC;', (err, result) => {
-      if (err) {
-        console.log(err);
-        res.status(500).send('Erreur lors de la récupération du jour ' + currentDate);
-      } else {
-        let date = "";
-        let dateOk = false;
-        result.forEach(element => {
+    // Récupération des données de la table Sport
+    const sportsResult = await conn.query('SELECT Sport.Activity, Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER BY Day.Date DESC;');
 
-          if(date != element.Date)
-          {
-            date = element.Date;
-            dateOk = false;
-          }
-          
-          // Sport
-          if(needSportCount && !dateOk)
-          {
-            dayWithoutSport++;
-          }
-          if(element.Activity != null && needSportCount)
-          {
-            needSportCount = false;
-          }
-        });
+    let date = "";
+    let dateOk = false;
+    sportsResult.forEach(element => {
+      if (date !== element.Date) {
+        date = element.Date;
+        dateOk = false;
+      }
 
-        const resultsAlert = [{dayWithoutSport,dayWithoutPiano, dayWithoutSkin, dayWithoutReading, dayWithoutFap, lastFap}];
-        res.status(200).json(resultsAlert);
-        console.log("Succes : getAlert");
+      // Sport
+      if (needSportCount && !dateOk) {
+        dayWithoutSport++;
+      }
+      if (element.Activity && needSportCount) {
+        needSportCount = false;
       }
     });
 
-    
-    }
-  });
+    const resultsAlert = [{ dayWithoutSport, dayWithoutPiano, dayWithoutSkin, dayWithoutReading, dayWithoutFap, lastFap }];
+    res.status(200).json(resultsAlert);
+    console.log("Succès : getAlert");
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Erreur lors de la récupération des alertes');
+
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 });
 
-// Exemple de route pour ajouter un utilisateur
-app.post('/updateToday', (req, res) => {
-  const {rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate } = req.body;
-  conn.query('UPDATE Day SET Skin = '+skinChecked+', Piano = '+pianoChecked+', Sleep = "'+sleepValue+'", Reading = '+readingChecked+', Rating = "'+rating+'", Description = "'+ Description+'", Fap = "'+Fap+'" WHERE Date = "'+currentDate+'";', (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erreur lors de l\'update Today' + currentDate);
-    } else {
-      res.status(200).json(result);
-      console.log("Succes : updateToday")
-    }
-  });
+
+// Exemple de route pour mettre à jour les données du jour
+app.post('/updateToday', async (req, res) => {
+  const { rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate } = req.body;
+
+  let conn;
+  try {
+    conn = await pool.getConnection(); // Obtenez une connexion du pool
+
+    // Utilisation des requêtes paramétrées pour éviter les injections SQL
+    const query = `
+      UPDATE Day
+      SET
+        Skin = ?,
+        Piano = ?,
+        Sleep = ?,
+        Reading = ?,
+        Rating = ?,
+        Description = ?,
+        Fap = ?
+      WHERE Date = ?
+    `;
+    const values = [skinChecked, pianoChecked, sleepValue, readingChecked, rating, Description, Fap, currentDate];
+    
+    const result = await conn.query(query, values);
+
+    res.status(200).json(result);
+    console.log("Succès : updateToday");
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Erreur lors de l\'update Today');
+
+  } finally {
+    if (conn) conn.release(); // Toujours libérer la connexion après usage
+  }
 });
 
 // Démarrage du serveur
 app.listen(port, () => {
-  console.log(`Serveur backend écoutant sur le port ${port}`);
-});*/
+  console.log(`Serveur en écoute sur le port ${port}`);
+});
