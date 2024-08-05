@@ -119,8 +119,17 @@ app.post('/removeSport', async (req, res) => {
 
     // Utilisez une requête paramétrée pour éviter les injections SQL
     const result = await conn.query('DELETE FROM Sport WHERE Id = ?', [sportId]);
+    // Convertir les résultats en JSON en traitant les BigInt
+    const jsonResult = result.map(row => {
+      // Convertir BigInt en Number si nécessaire
+      return Object.fromEntries(
+        Object.entries(row).map(([key, value]) =>
+          [key, typeof value === 'bigint' ? Number(value) : value]
+        )
+      );
+    });
 
-    res.status(200).send(result);
+    res.status(200).send(jsonResult);
     console.log("Succès : removeSport");
 
   } catch (err) {
@@ -270,7 +279,6 @@ app.post('/getAlert', async (req, res) => {
 });
 
 
-// Exemple de route pour mettre à jour les données du jour
 app.post('/updateToday', async (req, res) => {
   const { rating, readingChecked, pianoChecked, skinChecked, sleepValue, Description, Fap, currentDate } = req.body;
 
@@ -282,20 +290,30 @@ app.post('/updateToday', async (req, res) => {
     const query = `
       UPDATE Day
       SET
-        Skin = `+skinChecked+`,
-        Piano = `+pianoChecked+`,
-        Sleep = "`+sleepValue+`",
-        Reading = `+readingChecked+`,
-        Rating = `+rating+`,
-        Description = "`+Description+`",
-        Fap = "`+Fap+`"
-      WHERE Date = "`+currentDate+`";
+        Skin = ?,
+        Piano = ?,
+        Sleep = ?,
+        Reading = ?,
+        Rating = ?,
+        Description = ?,
+        Fap = ?
+      WHERE Date = ?
     `;
     const values = [skinChecked, pianoChecked, sleepValue, readingChecked, rating, Description, Fap, currentDate];
-    console.log(query);
-    const result = await conn.query(query);
+    
+    const result = await conn.query(query, values);
 
-    res.status(200).json(result);
+    // Convertir les résultats en JSON en traitant les BigInt
+    const jsonResult = result.map(row => {
+      // Convertir BigInt en Number si nécessaire
+      return Object.fromEntries(
+        Object.entries(row).map(([key, value]) =>
+          [key, typeof value === 'bigint' ? Number(value) : value]
+        )
+      );
+    });
+
+    res.status(200).json(jsonResult);
     console.log("Succès : updateToday");
 
   } catch (err) {
