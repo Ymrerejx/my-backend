@@ -6,7 +6,7 @@ const mariadb = require('mariadb');
 const bodyParser = require('body-parser');
 
 const app = express();
-const port = 3306; // Port sur lequel le serveur écoutera
+const port = 3000; // Port sur lequel le serveur écoutera
 
 // Configuration de body-parser pour lire les données JSON
 app.use(bodyParser.json());
