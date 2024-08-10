@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const pool = mariadb.createPool({
-  host: '198.192.1.32',  // Remplacez par l'adresse de votre serveur MariaDB
+  host: '127.0.0.1',  // Remplacez par l'adresse de votre serveur MariaDB
   user: 'ymerejx',  // Remplacez par votre nom d'utilisateur
   password: '149999',  // Remplacez par votre mot de passe
   database: 'MyDaily',
@@ -33,7 +33,7 @@ app.get('/days', async (req, res) => {
         Day.Reading, 
         Day.Fap, 
         Sport.Activity, 
-        Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date`); // Remplacez par votre requête SQL
+        Sport.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER BY Date ASC`); // Remplacez par votre requête SQL
     res.json(rows);
   } catch (err) {
     console.error("Erreur lors de la récupération des jours :", err);
