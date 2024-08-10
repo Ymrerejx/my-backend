@@ -33,7 +33,7 @@ app.get('/days', async (req, res) => {
         Day.Reading, 
         Day.Fap, 
         Sport.Activity, 
-        Sport.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER BY Date ASC`); // Remplacez par votre requête SQL
+        Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date ORDER BY Date ASC`); // Remplacez par votre requête SQL
     res.json(rows);
   } catch (err) {
     console.error("Erreur lors de la récupération des jours :", err);
