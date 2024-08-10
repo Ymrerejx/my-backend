@@ -25,7 +25,15 @@ app.get('/days', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const rows = await conn.query("SELECT * FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date"); // Remplacez par votre requête SQL
+    const rows = await conn.query(`SELECT Sport.Id, 
+        Day.Rating,
+        Day.Piano, 
+        Day.Skin, 
+        Day.Sleep, 
+        Day.Reading, 
+        Day.Fap, 
+        Sport.Activity, 
+        Day.Date FROM Day LEFT JOIN Sport ON Day.Date = Sport.Date`); // Remplacez par votre requête SQL
     res.json(rows);
   } catch (err) {
     console.error("Erreur lors de la récupération des jours :", err);
